@@ -1,10 +1,8 @@
 from rest_framework import generics
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.settings import api_settings
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from user.serializers import AuthTokenSerializer, UserSerializer
+from user.serializers import UserSerializer
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -16,23 +14,13 @@ class CreateUserView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
 
-class CreateTokenView(ObtainAuthToken):
-    """
-    View for obtaining authentication token for a user. No authentication required.
-    """
-    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
-    serializer_class = AuthTokenSerializer
-    authentication_classes = []
-    permission_classes = [AllowAny]
-
-
 class ManageUserView(generics.RetrieveUpdateAPIView):
     """
     View for retrieving and updating the currently authenticated user's information.
     Requires authentication using token.
     """
     serializer_class = UserSerializer
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (JWTAuthentication,)
     permission_classes = (IsAuthenticated,)
 
     def get_object(self):
