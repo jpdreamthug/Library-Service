@@ -4,6 +4,10 @@ from rest_framework import serializers
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the User model. Includes methods for creating and updating users.
+    """
+
     class Meta:
         model = get_user_model()
         fields = ("id", "email", "password", "is_staff")
@@ -15,7 +19,9 @@ class UserSerializer(serializers.ModelSerializer):
         return get_user_model().objects.create_user(**validated_data)
 
     def update(self, instance, validated_data):
-        """Update a user, set the password correctly and return it"""
+        """
+        Update a user, set the password correctly and return it
+        """
         password = validated_data.pop("password", None)
         user = super().update(instance, validated_data)
         if password:
@@ -26,6 +32,9 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class AuthTokenSerializer(serializers.Serializer):
+    """
+    Serializer for user authentication. Validates user credentials.
+    """
     email = serializers.CharField(label=_("Email"))
     password = serializers.CharField(
         label=_("Password"), style={"input_type": "password"}

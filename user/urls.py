@@ -1,5 +1,4 @@
-from django.http import JsonResponse
-from django.urls import path, reverse
+from django.urls import path
 from rest_framework_simplejwt import views as jwt_views
 
 from user.views import CreateUserView, CreateTokenView, ManageUserView
