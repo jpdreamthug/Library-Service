@@ -1,12 +1,12 @@
 from rest_framework import viewsets, mixins
 
+from borrowing.mixins import GenericMethodsMixin
 from borrowing.models import Borrowing
 from borrowing.serializers import (
     BorrowingSerializer,
     BorrowingListSerializer,
-    BorrowingDetailSerializer
+    BorrowingDetailSerializer,
 )
-from borrowing.mixins import GenericMethodsMixin
 
 
 class BorrowingViewSet(
@@ -20,5 +20,5 @@ class BorrowingViewSet(
     serializer_class = BorrowingSerializer
     action_serializers = {
         "list": BorrowingListSerializer,
-        "retrieve": BorrowingDetailSerializer
+        "retrieve": BorrowingDetailSerializer,
     }
