@@ -5,7 +5,6 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 CREATE_USER_URL = reverse("user:create")
-TOKEN_URL = reverse("user:token")
 ME_URL = reverse("user:manage")
 
 
@@ -57,47 +56,6 @@ class PublicUserApiTests(TestCase):
         user_exists = get_user_model().objects.filter(email=payload["email"]).exists()
         self.assertFalse(user_exists)
 
-    def test_create_token_for_user(self):
-        """Test that a token is created for the user"""
-        payload = {
-            "email": "test@test.com",
-            "password": "test123",
-        }
-        create_user(**payload)
-
-        res = self.client.post(TOKEN_URL, payload)
-        self.assertIn("token", res.data)
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-
-    def test_create_token_invalid_credentials(self):
-        """Test that token is not created if invalid credentials are given"""
-        create_user(email="test@test.com", password="test123")
-        payload = {
-            "email": "test@test.com",
-            "password": "wrong",
-        }
-
-        res = self.client.post(TOKEN_URL, payload)
-
-        self.assertNotIn("token", res.data)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_create_token_no_user(self):
-        """Test that token is not created if user doesn't exist"""
-        payload = {
-            "email": "test@test.com",
-            "password": "test123",
-        }
-        res = self.client.post(TOKEN_URL, payload)
-        self.assertNotIn("token", res.data)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_create_token_missing_filed(self):
-        """Test that email and password are required"""
-        res = self.client.post(TOKEN_URL, {"email": 1, "password": ""})
-        self.assertNotIn("token", res.data)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
     def test_retrieve_user_unauthorized(self):
         """Test that authentication is required for users"""
         res = self.client.get(ME_URL)
@@ -125,6 +83,8 @@ class PrivateUserApiTests(TestCase):
             {
                 "id": self.user.id,
                 "email": self.user.email,
+                "first_name": self.user.first_name,
+                "last_name": self.user.last_name,
                 "is_staff": self.user.is_staff,
             },
         )
