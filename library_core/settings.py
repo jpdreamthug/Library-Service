@@ -156,3 +156,7 @@ SIMPLE_JWT = {
     "USER_ID_CLAIM": "user_id",
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
 }
+
+
+if os.getenv("DOCKER", False):
+    DATABASES["default"]["HOST"] = "127.0.0.1"
