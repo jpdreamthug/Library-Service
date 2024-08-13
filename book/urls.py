@@ -1,5 +1,5 @@
 from rest_framework.routers import DefaultRouter
-from .views import BookViewSet
+from book.views import BookViewSet
 
 app_name = "book"
 
