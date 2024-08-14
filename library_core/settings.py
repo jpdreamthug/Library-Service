@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "user",
     "book",
     "borrowing",
+    "payment",
 ]
 
 MIDDLEWARE = [
@@ -91,7 +92,7 @@ DATABASES = {
         "USER": os.getenv("POSTGRES_USER"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
         "HOST": os.getenv("POSTGRES_HOST"),
-        "PORT": os.getenv("POSTGRES_PORT"),
+        "PORT": int(os.getenv("POSTGRES_PORT")),
     }
 }
 
