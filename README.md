@@ -18,8 +18,8 @@ payment processing and Telegram for notifications.
 ## Installing using GitHub
 Install PostgresSQL and create db
 ```
-git clone <path to github repozitoty>
-cd <projectname>
+git clone https://github.com/jpdreamthug/Library-Service.git
+cd Library-Service
 python - m venv venv
 sourse venv/bin/activate
 pip install - r requiments.txt
@@ -41,9 +41,16 @@ docker-compose up --build
 ```
 Access the application: Open your browser and go to http://localhost:8001
 
-## Getting access
-- **creating user via /api/user/register/**
-- **get access token via /api/user/token/**
+### Authentication
+
+To use the API, you need to create a user account and obtain an access token:
+
+1. Create a user:
+POST /user/register/
+2. Get an access token:
+POST /user/token/
+Include the access token in the Authorization header for authenticated requests:
+Authorization: Bearer <your_access_token>
 
 ## Features
 - **JWT authentification**
@@ -54,46 +61,15 @@ Access the application: Open your browser and go to http://localhost:8001
 - **Borrowings Service**: Manage book borrowings, including creation, retrieval, and return.
 - **Notifications Service**: Send notifications about borrowings and overdue items via Telegram.
 - **Payments Service**: Handle payments for book borrowings through Stripe.
-## Resources
-
-### Book
-- **Title**: `str`
-- **Author**: `str`
-- **Cover**: Enum: `HARD` | `SOFT`
-- **Inventory**: Positive `int` (Number of books available in the library)
-- **Daily Fee**: Decimal (in $USD)
-
-### User (Customer)
-- **Email**: `str`
-- **First Name**: `str`
-- **Last Name**: `str`
-- **Password**: `str`
-- **Is Staff**: `bool`
-
-### Borrowing
-- **Borrow Date**: `date`
-- **Expected Return Date**: `date`
-- **Actual Return Date**: `date`
-- **Book ID**: `int`
-- **User ID**: `int`
-
-### Payment
-- **Status**: Enum: `PENDING` | `PAID`
-- **Type**: Enum: `PAYMENT` | `FINE`
-- **Borrowing ID**: `int`
-- **Session URL**: `Url` (URL to Stripe payment session)
-- **Session ID**: `str` (ID of Stripe payment session)
-- **Money to Pay**: Decimal (in $USD)
-
-## Components
-
+### Components and API Endpoints
+For detailed API documentation, visit /api/schema/swagger-ui/ when the server is running.
 ### Books Service
 - **API Endpoints**:
-  - `POST /books/` - Add a new book
-  - `GET /books/` - List all books
-  - `GET /books/<id>/` - Get details of a specific book
-  - `PUT/PATCH /books/<id>/` - Update a book (including inventory management)
-  - `DELETE /books/<id>/` - Delete a book
+  - `POST /api/books/` - Add a new book
+  - `GET /api/books/` - List all books
+  - `GET /api/books/<id>/` - Get details of a specific book
+  - `PUT/PATCH /api/books/<id>/` - Update a book (including inventory management)
+  - `DELETE /api/books/<id>/` - Delete a book
 
 ### Users Service
 - **API Endpoints**:
@@ -105,10 +81,10 @@ Access the application: Open your browser and go to http://localhost:8001
 
 ### Borrowings Service
 - **API Endpoints**:
-  - `POST /borrowings/` - Create a new borrowing (decreases book inventory by 1)
-  - `GET /borrowings/?user_id=...&is_active=...` - List borrowings by user ID and active status
-  - `GET /borrowings/<id>/` - Get details of a specific borrowing
-  - `POST /borrowings/<id>/return/` - Set actual return date (increases book inventory by 1)
+  - `POST /api/borrowings/` - Create a new borrowing (decreases book inventory by 1)
+  - `GET /api/borrowings/?user_id=...&is_active=...` - List borrowings by user ID and active status
+  - `GET /api/borrowings/<id>/` - Get details of a specific borrowing
+  - `POST /api/borrowings/<id>/return/` - Set actual return date (increases book inventory by 1)
 
 ### Notifications Service (Telegram)
 - **Functionality**:
