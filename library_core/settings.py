@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "user",
     "book",
     "borrowing",
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [
@@ -140,7 +141,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
-    )
+    ),
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -169,9 +170,23 @@ CACHES = {
     }
 }
 
-if not os.getenv("DOCKER", False):
-    DATABASES["default"]["HOST"] = "127.0.0.1"
-    CACHES["default"]["LOCATION"] = "redis://127.0.0.1:6379/1"
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+CELERY_TIMEZONE = "Europe/Kiev"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+CELERY_BEAT_SCHEDULE = {
+    "send-active-borrowings-notification-every-day": {
+        "task": "borrowing.tasks.send_notification_overdue_tasks",
+        "schedule": timedelta(days=1),
+    },
+}
+
+if not os.getenv("DOCKER", False):
+    DATABASES["default"]["HOST"] = "127.0.0.1"
+    CACHES["default"]["LOCATION"] = "redis://127.0.0.1:6379/1"
+    CELERY_BROKER_URL = "redis://127.0.0.1:6379/2"
