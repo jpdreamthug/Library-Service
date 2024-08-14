@@ -151,9 +151,21 @@ SIMPLE_JWT = {
 }
 
 
-if not os.getenv("DOCKER", False):
-    DATABASES["default"]["HOST"] = "127.0.0.1"
-
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.getenv("REDIS_LOCATION"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
+}
+
+if not os.getenv("DOCKER", False):
+    DATABASES["default"]["HOST"] = "127.0.0.1"
+    CACHES["default"]["LOCATION"] = "redis://127.0.0.1:6379/1"
