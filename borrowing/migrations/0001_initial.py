@@ -52,12 +52,6 @@ class Migration(migrations.Migration):
                 "constraints": [
                     models.CheckConstraint(
                         condition=models.Q(
-                            ("borrow_date__gte", datetime.date(2024, 8, 13))
-                        ),
-                        name="borrow_date_not_in_past",
-                    ),
-                    models.CheckConstraint(
-                        condition=models.Q(
                             ("expected_return_date__gt", models.F("borrow_date"))
                         ),
                         name="expected_return_after_borrow",
