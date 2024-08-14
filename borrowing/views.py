@@ -33,6 +33,6 @@ class BorrowingViewSet(
         return super().list(request, *args, **kwargs)
 
     def perform_create(self, serializer):
-      if not self.request.user.is_authenticated:
-          raise PermissionDenied("Authentication credentials were not provided.")
-      serializer.save(user=self.request.user)
+        if not self.request.user.is_authenticated:
+            raise PermissionDenied("Authentication credentials were not provided.")
+        serializer.save(user=self.request.user)
