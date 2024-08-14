@@ -1,13 +1,13 @@
 from django.db import transaction
 from django.utils import timezone
-from rest_framework import viewsets, mixins, status
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_headers
+from rest_framework import status
+from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-from rest_framework import viewsets, mixins
-from rest_framework.exceptions import PermissionDenied
 
 from borrowing.filters import BorrowingFilterBackend
 from borrowing.mixins import GenericMethodsMixin
@@ -39,6 +39,7 @@ class BorrowingViewSet(
         "return_borrowing_book": BorrowingReturnSerializer,
     }
 
+    @method_decorator(vary_on_headers("Authorize"))
     @method_decorator(cache_page(60 * 5, key_prefix="borrowings"))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
