@@ -1,4 +1,7 @@
+import stripe
+from django.conf import settings
 from django.db import transaction
+from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -19,6 +22,9 @@ from borrowing.serializers import (
     BorrowingCreateSerializer,
     BorrowingReturnSerializer,
 )
+from payment.models import Payment
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 class BorrowingViewSet(
@@ -37,6 +43,7 @@ class BorrowingViewSet(
         "retrieve": BorrowingDetailSerializer,
         "create": BorrowingCreateSerializer,
         "return_borrowing_book": BorrowingReturnSerializer,
+        "create_payment": BorrowingReturnSerializer,
     }
 
     @method_decorator(vary_on_headers("Authorize"))
@@ -47,9 +54,7 @@ class BorrowingViewSet(
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(
-        methods=["POST"], detail=True, permission_classes=[IsAuthenticated]
-    )
+    @action(methods=["POST"], detail=True, permission_classes=[IsAuthenticated])
     @transaction.atomic
     def return_borrowing_book(self, request, pk=None):
         borrowing = self.get_object()
@@ -70,3 +75,37 @@ class BorrowingViewSet(
             {"message": "Book has already been returned"},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+    @action(methods=["POST"], detail=True, permission_classes=[IsAuthenticated])
+    def create_payment(self, request, pk=None):
+        domain = "http://localhost:8000"
+        borrowing = self.get_object()
+        money_to_pay = borrowing.calculate_payment()
+        payment = Payment.objects.create(
+            borrowing=borrowing,
+            money_to_pay=money_to_pay,
+            status=Payment.Status.PENDING,
+            type=Payment.Type.PAYMENT,
+        )
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "usd",
+                        "unit_amount": money_to_pay,
+                        "product_data": {
+                            "name": borrowing.book.title,
+                        },
+                    },
+                    "quantity": 1,
+                },
+            ],
+            mode="payment",
+            success_url=domain + "?success=true",
+            cancel_url=domain + "?canceled=true",
+        )
+        payment.session_id = checkout_session.id
+        payment.session_url = checkout_session.url
+        payment.save()
+
+        return JsonResponse({"id": checkout_session.id})

@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     "book",
     "borrowing",
     "django_celery_beat",
-    "payment"
+    "payment",
 ]
 
 MIDDLEWARE = [
@@ -144,7 +144,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ),
-    "DEFAULT_SCHEMA_CLASS": 'drf_spectacular.openapi.AutoSchema',
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 SPECTACULAR_SETTINGS = {
     "TITLE": "Library API documentation",
@@ -192,6 +192,10 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": timedelta(days=1),
     },
 }
+
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
 if not os.getenv("DOCKER", False):
     DATABASES["default"]["HOST"] = "127.0.0.1"
