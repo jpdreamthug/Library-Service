@@ -5,13 +5,15 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from borrowing.filters import BorrowingFilterBackend
 from borrowing.mixins import GenericMethodsMixin
 from borrowing.models import Borrowing
 from borrowing.serializers import (
     BorrowingSerializer,
     BorrowingListSerializer,
     BorrowingDetailSerializer,
-    BorrowingCreateSerializer, BorrowingReturnSerializer,
+    BorrowingCreateSerializer,
+    BorrowingReturnSerializer,
 )
 
 
@@ -24,35 +26,14 @@ class BorrowingViewSet(
 ):
     queryset = Borrowing.objects.select_related("book", "user")
     serializer_class = BorrowingSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = [IsAuthenticated]
+    filter_backends = [BorrowingFilterBackend]
     action_serializers = {
         "list": BorrowingListSerializer,
         "retrieve": BorrowingDetailSerializer,
         "create": BorrowingCreateSerializer,
         "return_borrowing_book": BorrowingReturnSerializer
     }
-
-    def get_queryset(self):
-        """
-        All non-admins can see only their borrowings. Admins can see all
-        borrowings and use filter by user_id.
-        is_active parameter for filtering by active borrowings
-        """
-        queryset = self.queryset
-        is_admin = self.request.user.is_staff or self.request.user.is_superuser
-        is_active = self.request.query_params.get("is_active")
-        user_id = self.request.query_params.get("user_id")
-
-        if is_active == "true":
-            queryset = queryset.filter(actual_return_date__isnull=True)
-
-        if user_id and is_admin:
-            queryset = queryset.filter(user_id=user_id)
-
-        if not is_admin:
-            queryset = queryset.filter(user=self.request.user)
-
-        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
