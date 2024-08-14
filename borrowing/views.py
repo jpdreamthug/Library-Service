@@ -1,3 +1,5 @@
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import viewsets, mixins
 from rest_framework.exceptions import PermissionDenied
 
@@ -25,6 +27,10 @@ class BorrowingViewSet(
         "retrieve": BorrowingDetailSerializer,
         "create": BorrowingCreateSerializer,
     }
+
+    @method_decorator(cache_page(60 * 5, key_prefix="borrowings"))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         if not self.request.user.is_authenticated:
