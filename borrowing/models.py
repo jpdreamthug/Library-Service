@@ -75,5 +75,7 @@ class Borrowing(models.Model):
         )
 
     def __str__(self):
-        return (f"Borrowed '{self.book}' on {self.borrow_date}, "
-                f"expected return by {self.expected_return_date}")
+        return (
+            f"Borrowed '{self.book}' on {self.borrow_date}, "
+            f"expected return by {self.expected_return_date}"
+        )

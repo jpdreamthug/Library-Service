@@ -32,16 +32,14 @@ class BorrowingViewSet(
         "list": BorrowingListSerializer,
         "retrieve": BorrowingDetailSerializer,
         "create": BorrowingCreateSerializer,
-        "return_borrowing_book": BorrowingReturnSerializer
+        "return_borrowing_book": BorrowingReturnSerializer,
     }
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
     @action(
-        methods=["POST"],
-        detail=True,
-        permission_classes=[IsAuthenticated]
+        methods=["POST"], detail=True, permission_classes=[IsAuthenticated]
     )
     @transaction.atomic
     def return_borrowing_book(self, request, pk=None):
@@ -55,11 +53,11 @@ class BorrowingViewSet(
             return Response(
                 {
                     "message": "Book returned successfully",
-                    "actual_return_date": time_now
+                    "actual_return_date": time_now,
                 },
-                status=status.HTTP_200_OK
+                status=status.HTTP_200_OK,
             )
         return Response(
             {"message": "Book has already been returned"},
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_400_BAD_REQUEST,
         )

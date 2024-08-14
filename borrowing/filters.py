@@ -22,6 +22,7 @@ class BorrowingFilterBackend(filters.BaseFilterBackend):
     3. **Current User Filtering**:
         - Non-admin users will only see borrowings associated with their own user account.
     """
+
     def filter_queryset(self, request, queryset, view):
         is_admin = request.user.is_staff or request.user.is_superuser
         is_active = request.query_params.get("is_active", "").lower()
