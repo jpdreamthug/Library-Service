@@ -23,10 +23,6 @@ class Borrowing(models.Model):
     class Meta:
         constraints = [
             CheckConstraint(
-                check=Q(borrow_date__gte=timezone.now().date()),
-                name="borrow_date_not_in_past",
-            ),
-            CheckConstraint(
                 check=Q(expected_return_date__gt=models.F("borrow_date")),
                 name="expected_return_after_borrow",
             ),
