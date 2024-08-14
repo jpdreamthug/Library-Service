@@ -13,10 +13,16 @@ borrowing_detail = BorrowingViewSet.as_view(
         "get": "retrieve"
     }
 )
+borrowing_return = BorrowingViewSet.as_view(
+    {
+        "post": "return_borrowing_book"
+    }
+)
 
 urlpatterns = [
     path("", borrowing_list_create, name="borrowing-list"),
     path("<int:pk>/", borrowing_detail, name="borrowing-detail"),
+    path("<int:pk>/return", borrowing_return, name="borrowing-return")
 ]
 
 app_name = "borrowings"
