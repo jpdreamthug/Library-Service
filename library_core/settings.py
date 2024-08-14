@@ -160,3 +160,7 @@ if not os.getenv("DOCKER", False):
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+
+
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
