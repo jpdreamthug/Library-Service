@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 
 from book.serializers import BookSerializer
@@ -27,6 +28,7 @@ class BorrowingListSerializer(serializers.ModelSerializer):
             "borrow_date",
             "expected_return_date",
             "book",
+            "user"
         )
 
 
@@ -54,12 +56,25 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
             "book",
         )
 
-    def validate(self, data):
-        book = data.get("book")
+    def validate(self, attrs):
+        book = attrs.get("book")
         if book.inventory <= 0:
             raise serializers.ValidationError("The book is out of stock")
 
-        return data
+        borrow_date = timezone.now().date()
+
+        expected_return_date = attrs.get("expected_return_date")
+        actual_return_date = None
+
+        Borrowing.validate_dates(
+            borrow_date,
+            expected_return_date,
+            actual_return_date,
+            serializers.ValidationError
+        )
+        attrs["borrow_date"] = borrow_date
+
+        return attrs
 
     def create(self, validated_data):
         book = validated_data.get("book")
