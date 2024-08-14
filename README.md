@@ -18,8 +18,8 @@ payment processing and Telegram for notifications.
 ## Installing using GitHub
 Install PostgresSQL and create db
 ```
-git clone 
-cd planetarium_API
+git clone <path to github repozitoty>
+cd <projectname>
 python - m venv venv
 sourse venv/bin/activate
 pip install - r requiments.txt
@@ -35,7 +35,11 @@ You should create correct .env file from .env.sample
 docker-compose build
 docker-compose up
 ```
-Access the application: Open your browser and go to http://localhost:8000
+or
+```
+docker-compose up --build
+```
+Access the application: Open your browser and go to http://localhost:8001
 
 ## Getting access
 - **creating user via /api/user/register/**
