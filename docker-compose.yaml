@@ -26,6 +26,18 @@ services:
       - .env
     volumes:
       - db_volume:$PGDATA
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    ports:
+      - "5540:5540"
+    depends_on:
+      - redis
+
 volumes:
   db_volume:
 
