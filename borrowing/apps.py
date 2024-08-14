@@ -7,3 +7,4 @@ class BorrowingConfig(AppConfig):
 
     def ready(self):
         from borrowing import signals
+        from notification.signals import borrowing_post_save_signal_handler
