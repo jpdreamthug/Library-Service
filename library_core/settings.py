@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "debug_toolbar",
+    "drf_spectacular",
     "user",
     "book",
     "borrowing",
@@ -142,8 +143,13 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ),
+    "DEFAULT_SCHEMA_CLASS": 'drf_spectacular.openapi.AutoSchema',
 }
-
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Library API documentation",
+    "DESCRIPTION": "Mate academy group task",
+    "VERSION": "1.0.0",
+}
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "user.User"
@@ -189,4 +195,6 @@ CELERY_BEAT_SCHEDULE = {
 if not os.getenv("DOCKER", False):
     DATABASES["default"]["HOST"] = "127.0.0.1"
     CACHES["default"]["LOCATION"] = "redis://127.0.0.1:6379/1"
-    CELERY_BROKER_URL = "redis://127.0.0.1:6379/2"
+
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")

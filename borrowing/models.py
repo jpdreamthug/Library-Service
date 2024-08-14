@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.db import models
 from django.db.models import CheckConstraint, Q
-from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from book.models import Book
@@ -66,13 +65,6 @@ class Borrowing(models.Model):
                 }
             )
 
-        if borrow_date <= timezone.now().date():
-            raise error(
-                {
-                    "borrow_date": "Borrow date must be in the future."
-                }
-            )
-
     def clean(self):
         super().clean()
         self.validate_dates(
@@ -83,5 +75,7 @@ class Borrowing(models.Model):
         )
 
     def __str__(self):
-        return (f"Borrowed '{self.book}' on {self.borrow_date}, "
-                f"expected return by {self.expected_return_date}")
+        return (
+            f"Borrowed '{self.book}' on {self.borrow_date}, "
+            f"expected return by {self.expected_return_date}"
+        )
