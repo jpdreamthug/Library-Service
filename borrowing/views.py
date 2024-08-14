@@ -94,7 +94,7 @@ class BorrowingViewSet(
                         "currency": "usd",
                         "unit_amount": money_to_pay,
                         "product_data": {
-                            "name": borrowing.book.title,
+                            "name": f"Book: {borrowing.book.title}",
                         },
                     },
                     "quantity": 1,
