@@ -1,3 +1,5 @@
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import viewsets, mixins
 
 from borrowing.mixins import GenericMethodsMixin
@@ -22,3 +24,7 @@ class BorrowingViewSet(
         "list": BorrowingListSerializer,
         "retrieve": BorrowingDetailSerializer,
     }
+
+    @method_decorator(cache_page(60 * 5, key_prefix="borrowings"))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
