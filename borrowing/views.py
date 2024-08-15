@@ -22,8 +22,9 @@ from borrowing.serializers import (
     BorrowingCreateSerializer,
     BorrowingReturnSerializer,
 )
-from payment.services import create_stripe_fine_session
-from payment.services import create_stripe_payment_session
+from payment.models import Payment
+from payment.services import create_payment_session
+
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -47,8 +48,6 @@ class BorrowingViewSet(
         "create_payment": BorrowingReturnSerializer,
     }
 
-    @method_decorator(vary_on_headers("Authorize"))
-    @method_decorator(cache_page(60 * 5, key_prefix="borrowings"))
     @extend_schema(
         summary="List all borrowings",
         description="Retrieve a list of all borrowings with details"
@@ -90,7 +89,11 @@ class BorrowingViewSet(
         borrowing_id = response.data.get("id")
         borrowing = Borrowing.objects.get(id=borrowing_id)
 
-        payment = create_stripe_payment_session(borrowing, request)
+        payment = create_payment_session(
+            borrowing,
+            request,
+            Payment.Type.PAYMENT
+        )
 
         return Response(
             {"payment_url": payment.session_url},
@@ -142,7 +145,11 @@ class BorrowingViewSet(
         borrowing.book.save()
 
         if borrowing.is_overdue:
-            payment = create_stripe_fine_session(borrowing, request)
+            payment = create_payment_session(
+                borrowing,
+                request,
+                Payment.Type.FINE
+            )
             return Response(
                 {
                     "session_url": payment.session_url,

@@ -24,11 +24,10 @@ from drf_spectacular.views import (
 )
 from rest_framework.routers import DefaultRouter
 
-router = DefaultRouter()
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/", include(router.urls)),
     path("api/books/", include("book.urls", namespace="books")),
     path("api/borrowings/", include("borrowing.urls", namespace="borrowings")),
     path("api/users/", include("user.urls", namespace="users")),
