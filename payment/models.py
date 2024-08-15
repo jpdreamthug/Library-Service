@@ -23,7 +23,7 @@ class Payment(models.Model):
         choices=Type.choices,
         default=Type.PAYMENT,
     )
-    borrowing = models.OneToOneField(
+    borrowing = models.ForeignKey(
         Borrowing, on_delete=models.CASCADE, related_name="payments"
     )
     session_url = models.URLField(max_length=510, null=True, blank=True)
