@@ -22,8 +22,6 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
     SpectacularRedocView
 )
-from rest_framework.routers import DefaultRouter
-
 
 
 urlpatterns = [

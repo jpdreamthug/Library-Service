@@ -26,7 +26,14 @@ class BorrowingListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Borrowing
-        fields = ("id", "borrow_date", "expected_return_date", "book", "user")
+        fields = (
+            "id",
+            "borrow_date",
+            "actual_return_date",
+            "expected_return_date",
+            "book",
+            "user",
+        )
 
 
 class BorrowingDetailSerializer(serializers.ModelSerializer):
@@ -69,9 +76,7 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
             )
 
         if Borrowing.objects.filter(
-            user=user,
-            book=book,
-            actual_return_date__isnull=True
+            user=user, book=book, actual_return_date__isnull=True
         ).exists():
             raise serializers.ValidationError(
                 "You have already borrowed this book."

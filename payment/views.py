@@ -1,4 +1,5 @@
 import stripe
+from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -11,6 +12,9 @@ from payment.serializers import PaymentSerializer, PaymentDetailSerializer
 from payment.services import create_payment_session
 
 
+@extend_schema(
+    tags=["Payments"]
+)
 class PaymentViewSet(
     GenericMethodsMixin,
     mixins.ListModelMixin,

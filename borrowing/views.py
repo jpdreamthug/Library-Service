@@ -29,6 +29,9 @@ from payment.services import create_payment_session
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
+@extend_schema(
+    tags=["Borrowings"]
+)
 class BorrowingViewSet(
     GenericMethodsMixin,
     mixins.CreateModelMixin,
@@ -74,8 +77,8 @@ class BorrowingViewSet(
 
     @extend_schema(
         summary="Create a new borrowing",
-        description="Create a new borrowing record. 
-                     "Requires authentication.",
+        description="Create a new borrowing record."
+                    "Requires authentication.",
     )
     @transaction.atomic
     def create(self, request, *args, **kwargs):
