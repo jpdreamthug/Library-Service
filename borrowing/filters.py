@@ -9,18 +9,22 @@ class BorrowingFilterBackend(filters.BaseFilterBackend):
     The filter applies the following rules:
 
     1. **Active Borrowings**:
-        - If the `is_active` query parameter is "true" or "1", only borrowings with
+        - If the `is_active` query parameter is "true" or "1",
+        only borrowings with
         `actual_return_date` as `NULL` are included (i.e., active borrowings).
         - If `is_active` is "false" or "0", only borrowings with a non-null
         `actual_return_date` are included (i.e., completed borrowings).
 
     2. **User-Specific Filtering**:
-        - If the `user_id` query parameter is provided and the user is an admin,
-        filter the borrowings to include only those with the specified `user_id`.
+        - If the `user_id` query parameter is provided
+         and the user is an admin,
+        filter the borrowings to include only
+        those with the specified `user_id`.
         - If the user is not an admin, the `user_id` parameter is ignored.
 
     3. **Current User Filtering**:
-        - Non-admin users will only see borrowings associated with their own user account.
+        - Non-admin users will only see borrowings associated with
+        their own user account.
     """
 
     def filter_queryset(self, request, queryset, view):
