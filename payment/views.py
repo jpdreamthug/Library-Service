@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from borrowing.mixins import GenericMethodsMixin
+from borrowing.signals import payment_successful
 from payment.models import Payment
 from payment.serializers import PaymentSerializer, PaymentDetailSerializer
 
@@ -49,6 +50,7 @@ class PaymentViewSet(
         if session.payment_status == "paid":
             payment.status = Payment.Status.PAID
             payment.save()
+            payment_successful.send(Payment, instance=payment)
 
             return Response(
                 {"message": "Payment was successful"}, status=status.HTTP_200_OK

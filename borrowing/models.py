@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.db import models
 from django.db.models import CheckConstraint, Q
@@ -28,9 +30,10 @@ class Borrowing(models.Model):
         return delta.days
 
     def get_fine_amount(self) -> int:
-        return int(
-            (self.FINE_MULTIPLIER * self.overdue_days * self.book.daily_fee) * 100
-        )
+        return int(self.FINE_MULTIPLIER * self.overdue_days * self.book.daily_fee * 100)
+
+    def get_payment_amount(self) -> int:
+        return int(self.book.daily_fee * Decimal(self.days) * 100)
 
     @property
     def is_overdue(self):
