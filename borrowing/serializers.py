@@ -1,8 +1,10 @@
+from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
 
 from book.serializers import BookSerializer
 from borrowing.models import Borrowing
+from payment.serializers import PaymentSerializer
 
 
 class BorrowingSerializer(serializers.ModelSerializer):
@@ -28,6 +30,7 @@ class BorrowingListSerializer(serializers.ModelSerializer):
 
 class BorrowingDetailSerializer(serializers.ModelSerializer):
     book = BookSerializer()
+    payments = PaymentSerializer(read_only=True)
 
     class Meta:
         model = Borrowing
@@ -38,6 +41,7 @@ class BorrowingDetailSerializer(serializers.ModelSerializer):
             "actual_return_date",
             "user",
             "book",
+            "payments"
         )
 
 
@@ -81,10 +85,12 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        book = validated_data.get("book")
-        book.inventory -= 1
-        book.save()
-        return super().create(validated_data)
+        with transaction.atomic():
+            book = validated_data.get("book")
+            book.inventory -= 1
+            book.save()
+
+            return super().create(validated_data)
 
 
 class BorrowingReturnSerializer(serializers.ModelSerializer):

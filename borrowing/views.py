@@ -1,4 +1,7 @@
+import stripe
+from django.conf import settings
 from django.db import transaction
+from django.http import JsonResponse, HttpResponseRedirect
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -19,6 +22,10 @@ from borrowing.serializers import (
     BorrowingCreateSerializer,
     BorrowingReturnSerializer,
 )
+from payment.models import Payment
+from payment.services import create_stripe_session
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 class BorrowingViewSet(
@@ -37,6 +44,7 @@ class BorrowingViewSet(
         "retrieve": BorrowingDetailSerializer,
         "create": BorrowingCreateSerializer,
         "return_borrowing_book": BorrowingReturnSerializer,
+        "create_payment": BorrowingReturnSerializer,
     }
 
     @method_decorator(vary_on_headers("Authorize"))
@@ -44,11 +52,24 @@ class BorrowingViewSet(
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        borrowing_id = response.data.get("id")
+        borrowing = Borrowing.objects.get(id=borrowing_id)
+
+        payment = create_stripe_session(borrowing, request)
+
+        return HttpResponseRedirect(redirect_to=payment.session_url)
+
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
     @action(
-        methods=["POST"], detail=True, permission_classes=[IsAuthenticated]
+        methods=["POST"],
+        detail=True,
+        permission_classes=[IsAuthenticated],
+        url_path="return",
     )
     @transaction.atomic
     def return_borrowing_book(self, request, pk=None):

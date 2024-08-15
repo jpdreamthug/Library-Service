@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from borrowing.serializers import BorrowingDetailSerializer
 from payment.models import Payment
 
 
@@ -19,6 +18,6 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 class PaymentDetailSerializer(PaymentSerializer):
-    borrowing = BorrowingDetailSerializer()
+    ...
 
 
