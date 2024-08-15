@@ -13,10 +13,10 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 def create_stripe_payment_session(
     borrowing: Borrowing, request: HttpRequest
 ) -> Payment:
-    total_price = borrowing.book.daily_fee * Decimal(borrowing.days)
+    total_price = borrowing.get_payment_amount()
 
-    success_url = request.build_absolute_uri("/api/payments/success")
-    cancel_url = request.build_absolute_uri("/api/payments/cancel")
+    success_url = request.build_absolute_uri(settings.PAYMENT_SUCCESS_URL)
+    cancel_url = request.build_absolute_uri(settings.PAYMENT_CANCEL_URL)
 
     session = stripe.checkout.Session.create(
         payment_method_types=["card"],
@@ -27,7 +27,7 @@ def create_stripe_payment_session(
                     "product_data": {
                         "name": borrowing.book.title,
                     },
-                    "unit_amount": int(total_price * 100),
+                    "unit_amount": total_price,
                 },
                 "quantity": 1,
             }
@@ -48,9 +48,10 @@ def create_stripe_payment_session(
 
 
 def create_stripe_fine_session(borrowing: Borrowing, request: HttpRequest) -> Payment:
-    success_url = request.build_absolute_uri("/api/payments/success")
-    cancel_url = request.build_absolute_uri("/api/payments/cancel")
     fine_amount = borrowing.get_fine_amount()
+
+    success_url = request.build_absolute_uri(settings.PAYMENT_SUCCESS_URL)
+    cancel_url = request.build_absolute_uri(settings.PAYMENT_CANCEL_URL)
 
     session = stripe.checkout.Session.create(
         payment_method_types=["card"],
