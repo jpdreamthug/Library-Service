@@ -1,7 +1,6 @@
 import stripe
 from django.conf import settings
 from django.db import transaction
-from django.http import JsonResponse, HttpResponseRedirect
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, mixins, status
@@ -23,8 +22,9 @@ from borrowing.serializers import (
     BorrowingCreateSerializer,
     BorrowingReturnSerializer,
 )
-from payment.services import create_stripe_fine_session
-from payment.services import create_stripe_payment_session
+from payment.models import Payment
+from payment.services import create_payment_session
+
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -48,8 +48,6 @@ class BorrowingViewSet(
         "create_payment": BorrowingReturnSerializer,
     }
 
-    @method_decorator(vary_on_headers("Authorize"))
-    @method_decorator(cache_page(60 * 5, key_prefix="borrowings"))
     @extend_schema(
         summary="List all borrowings",
         description="Retrieve a list of all borrowings with details"
@@ -70,25 +68,26 @@ class BorrowingViewSet(
                 type=int,
             ),
         ],
-
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
     @extend_schema(
         summary="Create a new borrowing",
-        description="Create a new borrowing record. Requires authentication.",
+        description="Create a new borrowing record. 
+                     "Requires authentication.",
     )
-    def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
-
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
         borrowing_id = response.data.get("id")
         borrowing = Borrowing.objects.get(id=borrowing_id)
 
-        payment = create_stripe_payment_session(borrowing, request)
+        payment = create_payment_session(
+            borrowing,
+            request,
+            Payment.Type.PAYMENT
+        )
 
         return Response(
             {"payment_url": payment.session_url},
@@ -100,7 +99,8 @@ class BorrowingViewSet(
 
     @extend_schema(
         summary="Retrieve a borrowing",
-        description="Retrieve details of a specific " "borrowing record using its ID.",
+        description="Retrieve details of a specific "
+                    "borrowing record using its ID.",
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
@@ -133,7 +133,11 @@ class BorrowingViewSet(
         borrowing.book.save()
 
         if borrowing.is_overdue:
-            payment = create_stripe_fine_session(borrowing, request)
+            payment = create_payment_session(
+                borrowing,
+                request,
+                Payment.Type.FINE
+            )
             return Response(
                 {
                     "session_url": payment.session_url,

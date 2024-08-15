@@ -5,8 +5,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from borrowing.mixins import GenericMethodsMixin
+from borrowing.signals import payment_successful
 from payment.models import Payment
 from payment.serializers import PaymentSerializer, PaymentDetailSerializer
+from payment.services import create_payment_session
 
 
 class PaymentViewSet(
@@ -49,6 +51,7 @@ class PaymentViewSet(
         if session.payment_status == "paid":
             payment.status = Payment.Status.PAID
             payment.save()
+            payment_successful.send(Payment, instance=payment)
 
             return Response(
                 {"message": "Payment was successful"}, status=status.HTTP_200_OK
@@ -63,3 +66,33 @@ class PaymentViewSet(
             {"message": "Payment was canceled. You can pay within 24 hours."},
             status=status.HTTP_200_OK,
         )
+
+    @action(
+        detail=True, methods=["GET"], url_path="renew", url_name="payment-renew"
+    )
+    def renew(self, request, pk=None) -> Response:
+        payment = self.get_object()
+        if payment.status != Payment.Status.EXPIRED:
+            return Response({
+                "detail": "this payment not expired"
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        new_payment = create_payment_session(
+            payment.borrowing,
+            request,
+            payment.type,
+            save=False
+        )
+        payment.session_url = new_payment.session_url
+        payment.session_id = new_payment.session_id
+        payment.save()
+
+        return Response(
+            {
+                "detail": "not implemented"
+            },
+            status=status.HTTP_200_OK
+        )
+
+
+
