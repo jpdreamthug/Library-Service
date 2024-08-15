@@ -74,8 +74,3 @@ class Borrowing(models.Model):
             f"expected return by {self.expected_return_date}"
         )
 
-    def calculate_payment(self) -> float:
-        return round(randint(500, 50000), 2)
-
-    def calculate_fine(self) -> float:
-        return self.calculate_payment()
