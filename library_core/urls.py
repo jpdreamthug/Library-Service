@@ -16,13 +16,32 @@ Including another URLconf
 """
 from debug_toolbar.toolbar import debug_toolbar_urls
 from django.contrib import admin
+from django.http import JsonResponse
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from rest_framework.reverse import reverse
 from rest_framework.routers import DefaultRouter
+
+
+def api_root(request):
+    return JsonResponse(
+        {
+            "admin": request.build_absolute_uri(reverse("admin:index")),
+            "api/": request.build_absolute_uri("api/"),
+            "api/books/": request.build_absolute_uri("api/books/"),
+            "api/borrowings/": request.build_absolute_uri("api/borrowings/"),
+            "api/payments/": request.build_absolute_uri("api/payments/"),
+            "api/users/": request.build_absolute_uri(reverse("users:api_root")),
+            "api/doc/swagger/": request.build_absolute_uri("api/doc/swagger/"),
+            "api/doc/redoc/": request.build_absolute_uri("api/doc/redoc/"),
+        }
+    )
+
 
 router = DefaultRouter()
 
 urlpatterns = [
+    path("", api_root, name="api_root"),
     path("admin/", admin.site.urls),
     path("api/", include(router.urls)),
     path("api/books/", include("book.urls", namespace="books")),
