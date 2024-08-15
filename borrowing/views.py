@@ -48,8 +48,6 @@ class BorrowingViewSet(
         "create_payment": BorrowingReturnSerializer,
     }
 
-    @method_decorator(vary_on_headers("Authorize"))
-    @method_decorator(cache_page(60 * 5, key_prefix="borrowings"))
     @extend_schema(
         summary="List all borrowings",
         description="Retrieve a list of all borrowings with details"

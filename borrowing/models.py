@@ -11,7 +11,7 @@ from book.models import Book
 
 class Borrowing(models.Model):
     FINE_MULTIPLIER = 2
-    borrow_date = models.DateField(default=timezone.now().date())
+    borrow_date = models.DateField(auto_now_add=True)
     expected_return_date = models.DateField()
     actual_return_date = models.DateField(null=True, blank=True)
     user = models.ForeignKey(
