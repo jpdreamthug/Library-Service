@@ -91,37 +91,3 @@ class BorrowingViewSet(
             {"message": "Book has already been returned"},
             status=status.HTTP_400_BAD_REQUEST,
         )
-
-    # @action(methods=["POST"], detail=True, permission_classes=[IsAuthenticated])
-    # def create_payment(self, request, pk=None):
-    #     domain = "http://localhost:8000"
-    #     borrowing = self.get_object()
-    #     money_to_pay = borrowing.calculate_payment()
-    #     payment = Payment.objects.create(
-    #         borrowing=borrowing,
-    #         money_to_pay=money_to_pay,
-    #         status=Payment.Status.PENDING,
-    #         type=Payment.Type.PAYMENT,
-    #     )
-    #     checkout_session = stripe.checkout.Session.create(
-    #         line_items=[
-    #             {
-    #                 "price_data": {
-    #                     "currency": "usd",
-    #                     "unit_amount": money_to_pay,
-    #                     "product_data": {
-    #                         "name": f"Book: {borrowing.book.title}",
-    #                     },
-    #                 },
-    #                 "quantity": 1,
-    #             },
-    #         ],
-    #         mode="payment",
-    #         success_url=domain + "?success=true",
-    #         cancel_url=domain + "?canceled=true",
-    #     )
-    #     payment.session_id = checkout_session.id
-    #     payment.session_url = checkout_session.url
-    #     payment.save()
-    #
-    #     return JsonResponse({"id": checkout_session.id})
