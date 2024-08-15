@@ -70,7 +70,7 @@ class BorrowingViewSet(
                 type=int,
             ),
         ],
-        responses={200: BorrowingListSerializer(many=True), 400: "Bad request"},
+
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -78,8 +78,6 @@ class BorrowingViewSet(
     @extend_schema(
         summary="Create a new borrowing",
         description="Create a new borrowing record. Requires authentication.",
-        request=BorrowingCreateSerializer,
-        responses={201: BorrowingSerializer, 400: "Bad request"},
     )
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
@@ -103,7 +101,6 @@ class BorrowingViewSet(
     @extend_schema(
         summary="Retrieve a borrowing",
         description="Retrieve details of a specific " "borrowing record using its ID.",
-        responses={200: BorrowingDetailSerializer, 404: "Not Found"},
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
@@ -113,11 +110,6 @@ class BorrowingViewSet(
         description="Mark a borrowed book as returned. "
         "This updates the `actual_return_date` "
         "and book inventory.",
-        request=BorrowingReturnSerializer,
-        responses={
-            200: "Book returned successfully",
-            400: "Book has already been returned",
-        },
     )
     @action(
         methods=["POST"],
