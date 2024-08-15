@@ -1,4 +1,7 @@
+import stripe
+from django.conf import settings
 from django.db import transaction
+from django.http import JsonResponse, HttpResponseRedirect
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, mixins, status
@@ -7,6 +10,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_headers
+
 
 from borrowing.filters import BorrowingFilterBackend
 from borrowing.mixins import GenericMethodsMixin
@@ -18,6 +23,10 @@ from borrowing.serializers import (
     BorrowingCreateSerializer,
     BorrowingReturnSerializer,
 )
+from payment.models import Payment
+from payment.services import create_stripe_session
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 class BorrowingViewSet(
@@ -36,8 +45,10 @@ class BorrowingViewSet(
         "retrieve": BorrowingDetailSerializer,
         "create": BorrowingCreateSerializer,
         "return_borrowing_book": BorrowingReturnSerializer,
+        "create_payment": BorrowingReturnSerializer,
     }
 
+    @method_decorator(vary_on_headers("Authorize"))
     @method_decorator(cache_page(60 * 5, key_prefix="borrowings"))
     @extend_schema(
         summary="List all borrowings",
@@ -77,6 +88,16 @@ class BorrowingViewSet(
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
 
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        borrowing_id = response.data.get("id")
+        borrowing = Borrowing.objects.get(id=borrowing_id)
+
+        payment = create_stripe_session(borrowing, request)
+
+        return HttpResponseRedirect(redirect_to=payment.session_url)
+
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
@@ -104,7 +125,10 @@ class BorrowingViewSet(
         }
     )
     @action(
-        methods=["POST"], detail=True, permission_classes=[IsAuthenticated]
+        methods=["POST"],
+        detail=True,
+        permission_classes=[IsAuthenticated],
+        url_path="return",
     )
     @transaction.atomic
     def return_borrowing_book(self, request, pk=None):

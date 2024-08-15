@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     "user",
     "book",
     "borrowing",
+    "django_celery_beat",
+    "payment",
 ]
 
 MIDDLEWARE = [
@@ -142,7 +144,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ),
-    "DEFAULT_SCHEMA_CLASS": 'drf_spectacular.openapi.AutoSchema',
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 SPECTACULAR_SETTINGS = {
     "TITLE": "Library API documentation",
@@ -174,6 +176,28 @@ CACHES = {
         },
     }
 }
+
+
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+CELERY_TIMEZONE = "Europe/Kiev"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+CELERY_BEAT_SCHEDULE = {
+    "send-active-borrowings-notification-every-day": {
+        "task": "borrowing.tasks.send_notification_overdue_tasks",
+        "schedule": timedelta(days=1),
+    },
+}
+
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+STRIPE_SUCCESS_URL = "http://localhost:8000/success/"
+STRIPE_CANCEL_URL = "http://localhost:8000/cancel/"
 
 if not os.getenv("DOCKER", False):
     DATABASES["default"]["HOST"] = "127.0.0.1"
