@@ -23,6 +23,7 @@ from borrowing.serializers import (
     BorrowingReturnSerializer,
 )
 from payment.models import Payment
+from payment.services import create_stripe_session
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -51,6 +52,18 @@ class BorrowingViewSet(
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        borrowing_id = response.data.get("id")
+        borrowing = Borrowing.objects.get(id=borrowing_id)
+
+        payment = create_stripe_session(borrowing, request)
+
+        return Response(
+            {"url": payment.session_url},
+            status=status.HTTP_303_SEE_OTHER
+        )
+
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
@@ -76,36 +89,36 @@ class BorrowingViewSet(
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    @action(methods=["POST"], detail=True, permission_classes=[IsAuthenticated])
-    def create_payment(self, request, pk=None):
-        domain = "http://localhost:8000"
-        borrowing = self.get_object()
-        money_to_pay = borrowing.calculate_payment()
-        payment = Payment.objects.create(
-            borrowing=borrowing,
-            money_to_pay=money_to_pay,
-            status=Payment.Status.PENDING,
-            type=Payment.Type.PAYMENT,
-        )
-        checkout_session = stripe.checkout.Session.create(
-            line_items=[
-                {
-                    "price_data": {
-                        "currency": "usd",
-                        "unit_amount": money_to_pay,
-                        "product_data": {
-                            "name": f"Book: {borrowing.book.title}",
-                        },
-                    },
-                    "quantity": 1,
-                },
-            ],
-            mode="payment",
-            success_url=domain + "?success=true",
-            cancel_url=domain + "?canceled=true",
-        )
-        payment.session_id = checkout_session.id
-        payment.session_url = checkout_session.url
-        payment.save()
-
-        return JsonResponse({"id": checkout_session.id})
+    # @action(methods=["POST"], detail=True, permission_classes=[IsAuthenticated])
+    # def create_payment(self, request, pk=None):
+    #     domain = "http://localhost:8000"
+    #     borrowing = self.get_object()
+    #     money_to_pay = borrowing.calculate_payment()
+    #     payment = Payment.objects.create(
+    #         borrowing=borrowing,
+    #         money_to_pay=money_to_pay,
+    #         status=Payment.Status.PENDING,
+    #         type=Payment.Type.PAYMENT,
+    #     )
+    #     checkout_session = stripe.checkout.Session.create(
+    #         line_items=[
+    #             {
+    #                 "price_data": {
+    #                     "currency": "usd",
+    #                     "unit_amount": money_to_pay,
+    #                     "product_data": {
+    #                         "name": f"Book: {borrowing.book.title}",
+    #                     },
+    #                 },
+    #                 "quantity": 1,
+    #             },
+    #         ],
+    #         mode="payment",
+    #         success_url=domain + "?success=true",
+    #         cancel_url=domain + "?canceled=true",
+    #     )
+    #     payment.session_id = checkout_session.id
+    #     payment.session_url = checkout_session.url
+    #     payment.save()
+    #
+    #     return JsonResponse({"id": checkout_session.id})
