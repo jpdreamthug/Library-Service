@@ -1,7 +1,7 @@
 import stripe
 from django.conf import settings
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -52,6 +52,7 @@ class BorrowingViewSet(
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
         borrowing_id = response.data.get("id")
@@ -59,15 +60,17 @@ class BorrowingViewSet(
 
         payment = create_stripe_session(borrowing, request)
 
-        return Response(
-            {"url": payment.session_url},
-            status=status.HTTP_303_SEE_OTHER
-        )
+        return HttpResponseRedirect(redirect_to=payment.session_url)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(methods=["POST"], detail=True, permission_classes=[IsAuthenticated])
+    @action(
+        methods=["POST"],
+        detail=True,
+        permission_classes=[IsAuthenticated],
+        url_path="return",
+    )
     @transaction.atomic
     def return_borrowing_book(self, request, pk=None):
         borrowing = self.get_object()
