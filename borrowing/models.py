@@ -17,6 +17,11 @@ class Borrowing(models.Model):
     )
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="borrowings")
 
+    @property
+    def days(self):
+        delta = self.expected_return_date - self.borrow_date
+        return delta.days
+
     class Meta:
         constraints = [
             CheckConstraint(
