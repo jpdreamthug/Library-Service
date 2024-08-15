@@ -7,6 +7,7 @@ from book.signals import cache_invalidate_by_prefix
 from notification.telegram_bot import TelegramBot
 from payment.models import Payment
 
+
 payment_successful = Signal()
 
 
