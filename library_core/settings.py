@@ -191,6 +191,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "borrowing.tasks.send_notification_overdue_tasks",
         "schedule": timedelta(days=1),
     },
+    "check_payment_expiration": {
+        "task": "payment.tasks.check_payment_expiration",
+        "schedule": timedelta(seconds=20),
+    },
 }
 
 STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
