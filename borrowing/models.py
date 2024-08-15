@@ -1,15 +1,15 @@
-from random import randint
-
 from django.conf import settings
 from django.db import models
 from django.db.models import CheckConstraint, Q
+from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from book.models import Book
 
 
 class Borrowing(models.Model):
-    borrow_date = models.DateField(auto_now_add=True)
+    FINE_MULTIPLIER = 2
+    borrow_date = models.DateField(default=timezone.now().date())
     expected_return_date = models.DateField()
     actual_return_date = models.DateField(null=True, blank=True)
     user = models.ForeignKey(
@@ -21,6 +21,22 @@ class Borrowing(models.Model):
     def days(self):
         delta = self.expected_return_date - self.borrow_date
         return delta.days
+
+    @property
+    def overdue_days(self) -> int:
+        delta = self.actual_return_date - self.expected_return_date
+        return delta.days
+
+    def get_fine_amount(self) -> int:
+        return int(
+            (self.FINE_MULTIPLIER * self.overdue_days * self.book.daily_fee) * 100
+        )
+
+    @property
+    def is_overdue(self):
+        if not self.actual_return_date:
+            raise ValueError("Book is not returned")
+        return self.actual_return_date > self.expected_return_date
 
     class Meta:
         constraints = [
@@ -73,4 +89,3 @@ class Borrowing(models.Model):
             f"Borrowed '{self.book}' on {self.borrow_date}, "
             f"expected return by {self.expected_return_date}"
         )
-

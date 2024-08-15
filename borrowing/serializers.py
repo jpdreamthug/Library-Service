@@ -30,7 +30,7 @@ class BorrowingListSerializer(serializers.ModelSerializer):
 
 class BorrowingDetailSerializer(serializers.ModelSerializer):
     book = BookSerializer()
-    payments = PaymentSerializer(read_only=True)
+    payments = PaymentSerializer(many=True)
 
     class Meta:
         model = Borrowing
@@ -41,7 +41,7 @@ class BorrowingDetailSerializer(serializers.ModelSerializer):
             "actual_return_date",
             "user",
             "book",
-            "payments"
+            "payments",
         )
 
 
@@ -62,9 +62,7 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
         if Borrowing.objects.filter(
             user=user, book=book, actual_return_date__isnull=True
         ).exists():
-            raise serializers.ValidationError(
-                "You have already borrowed this book."
-            )
+            raise serializers.ValidationError("You have already borrowed this book.")
 
         if book.inventory <= 0:
             raise serializers.ValidationError("The book is out of stock")

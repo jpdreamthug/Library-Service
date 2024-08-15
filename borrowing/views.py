@@ -23,8 +23,8 @@ from borrowing.serializers import (
     BorrowingCreateSerializer,
     BorrowingReturnSerializer,
 )
-from payment.models import Payment
-from payment.services import create_stripe_session
+from payment.services import create_stripe_fine_session
+from payment.services import create_stripe_payment_session
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -53,25 +53,24 @@ class BorrowingViewSet(
     @extend_schema(
         summary="List all borrowings",
         description="Retrieve a list of all borrowings with details"
-                    " such as book and user. Non-admin users will"
-                    " only see their own borrowings.",
+        " such as book and user. Non-admin users will"
+        " only see their own borrowings.",
         parameters=[
             OpenApiParameter(
                 name="is_active",
                 description="Filter by active borrowings (true/1)"
-                            " or completed borrowings (false/0)",
-                required=False, type=str),
+                " or completed borrowings (false/0)",
+                required=False,
+                type=str,
+            ),
             OpenApiParameter(
                 name="user_id",
                 description="Filter by user ID if user is admin",
                 required=False,
-                type=int
+                type=int,
             ),
         ],
-        responses={
-            200: BorrowingListSerializer(many=True),
-            400: "Bad request"
-        }
+        responses={200: BorrowingListSerializer(many=True), 400: "Bad request"},
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -80,10 +79,7 @@ class BorrowingViewSet(
         summary="Create a new borrowing",
         description="Create a new borrowing record. Requires authentication.",
         request=BorrowingCreateSerializer,
-        responses={
-            201: BorrowingSerializer,
-            400: "Bad request"
-        }
+        responses={201: BorrowingSerializer, 400: "Bad request"},
     )
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
@@ -94,21 +90,20 @@ class BorrowingViewSet(
         borrowing_id = response.data.get("id")
         borrowing = Borrowing.objects.get(id=borrowing_id)
 
-        payment = create_stripe_session(borrowing, request)
+        payment = create_stripe_payment_session(borrowing, request)
 
-        return HttpResponseRedirect(redirect_to=payment.session_url)
+        return Response(
+            {"payment_url": payment.session_url},
+            status=status.HTTP_201_CREATED,
+        )
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
     @extend_schema(
         summary="Retrieve a borrowing",
-        description="Retrieve details of a specific "
-                    "borrowing record using its ID.",
-        responses={
-            200: BorrowingDetailSerializer,
-            404: "Not Found"
-        }
+        description="Retrieve details of a specific " "borrowing record using its ID.",
+        responses={200: BorrowingDetailSerializer, 404: "Not Found"},
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
@@ -116,13 +111,13 @@ class BorrowingViewSet(
     @extend_schema(
         summary="Return a borrowed book",
         description="Mark a borrowed book as returned. "
-                    "This updates the `actual_return_date` "
-                    "and book inventory.",
+        "This updates the `actual_return_date` "
+        "and book inventory.",
         request=BorrowingReturnSerializer,
         responses={
             200: "Book returned successfully",
-            400: "Book has already been returned"
-        }
+            400: "Book has already been returned",
+        },
     )
     @action(
         methods=["POST"],
@@ -133,20 +128,31 @@ class BorrowingViewSet(
     @transaction.atomic
     def return_borrowing_book(self, request, pk=None):
         borrowing = self.get_object()
-        if borrowing.actual_return_date is None:
-            borrowing.book.inventory += 1
-            time_now = timezone.now().date()
-            borrowing.actual_return_date = time_now
-            borrowing.save()
-            borrowing.book.save()
+        if borrowing.actual_return_date:
+            return Response(
+                {"message": "Book has already been returned"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        borrowing.book.inventory += 1
+        time_now = timezone.now().date()
+        borrowing.actual_return_date = time_now
+        borrowing.save()
+        borrowing.book.save()
+
+        if borrowing.is_overdue:
+            payment = create_stripe_fine_session(borrowing, request)
             return Response(
                 {
-                    "message": "Book returned successfully",
-                    "actual_return_date": time_now,
+                    "session_url": payment.session_url,
                 },
                 status=status.HTTP_200_OK,
             )
+
         return Response(
-            {"message": "Book has already been returned"},
-            status=status.HTTP_400_BAD_REQUEST,
+            {
+                "message": "Book returned successfully",
+                "actual_return_date": time_now,
+            },
+            status=status.HTTP_200_OK,
         )
