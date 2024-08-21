@@ -23,7 +23,8 @@ class CreateUserView(generics.CreateAPIView):
 
     @extend_schema(
         summary="Create a new user",
-        description="Create a new user account. " "No authentication is required.",
+        description="Create a new user account. "
+        "No authentication is required.",
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
@@ -46,7 +47,8 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
 
     @extend_schema(
         summary="Show information about user",
-        description="Show information about user " "Authentication is required.",
+        description="Show information about user "
+        "Authentication is required.",
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)

@@ -12,9 +12,7 @@ from payment.serializers import PaymentSerializer, PaymentDetailSerializer
 from payment.services import create_payment_session
 
 
-@extend_schema(
-    tags=["Payments"]
-)
+@extend_schema(tags=["Payments"])
 class PaymentViewSet(
     GenericMethodsMixin,
     mixins.ListModelMixin,
@@ -84,31 +82,26 @@ class PaymentViewSet(
         )
 
     @action(
-        detail=True, methods=["GET"], url_path="renew", url_name="payment-renew"
+        detail=True,
+        methods=["GET"],
+        url_path="renew",
+        url_name="payment-renew",
     )
     def renew(self, request, pk=None) -> Response:
         payment = self.get_object()
         if payment.status != Payment.Status.EXPIRED:
-            return Response({
-                "detail": "this payment not expired"
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "this payment not expired"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         new_payment = create_payment_session(
-            payment.borrowing,
-            request,
-            payment.type,
-            save=False
+            payment.borrowing, request, payment.type, save=False
         )
         payment.session_url = new_payment.session_url
         payment.session_id = new_payment.session_id
         payment.save()
 
         return Response(
-            {
-                "detail": "not implemented"
-            },
-            status=status.HTTP_200_OK
+            {"detail": "not implemented"}, status=status.HTTP_200_OK
         )
-
-
-

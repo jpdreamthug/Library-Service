@@ -12,7 +12,8 @@ from book.serializers import BookSerializer
 @extend_schema(
     tags=["Books"],
     summary="Books API",
-    description="Endpoints related to managing books within the library system.",
+    description="Endpoints related to managing "
+                "books within the library system.",
 )
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
@@ -46,7 +47,7 @@ class BookViewSet(viewsets.ModelViewSet):
     @extend_schema(
         summary="Update a book",
         description="Update the details of a specific book "
-                    "using its ID. Requires admin privileges.",
+        "using its ID. Requires admin privileges.",
     )
     def update(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
@@ -54,7 +55,7 @@ class BookViewSet(viewsets.ModelViewSet):
     @extend_schema(
         summary="Delete a book",
         description="Delete a specific book using its ID. "
-                    "Requires admin privileges.",
+        "Requires admin privileges.",
     )
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
@@ -62,7 +63,7 @@ class BookViewSet(viewsets.ModelViewSet):
     @extend_schema(
         summary="Partially update a book",
         description="Partially update the details of a specific "
-                    "book using its ID. Requires admin privileges.",
+        "book using its ID. Requires admin privileges.",
     )
     def partial_update(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
