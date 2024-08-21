@@ -18,6 +18,4 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 class PaymentDetailSerializer(PaymentSerializer):
-    ...
-
-
+    pass

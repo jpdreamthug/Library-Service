@@ -30,9 +30,11 @@ class BorrowingAPITests(APITestCase):
         self.borrowing = Borrowing.objects.create(
             user=self.normal_user,
             book=self.book,
-            expected_return_date="2024-09-01"
+            expected_return_date="2024-09-01",
         )
-        self.borrowing_url = reverse("borrowings:borrowing-detail", args=[self.borrowing.id])
+        self.borrowing_url = reverse(
+            "borrowings:borrowing-detail", args=[self.borrowing.id]
+        )
         self.borrowing_list_url = reverse("borrowings:borrowing-list")
         self.token = str(RefreshToken.for_user(self.normal_user).access_token)
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
@@ -69,7 +71,9 @@ class BorrowingAPITests(APITestCase):
         }
         response = self.client.post(self.borrowing_list_url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("The book is out of stock", response.data["non_field_errors"])
+        self.assertIn(
+            "The book is out of stock", response.data["non_field_errors"]
+        )
 
     def test_permission_denied_create_borrowing(self):
         self.client.credentials()
@@ -90,8 +94,12 @@ class BorrowingAPITests(APITestCase):
 
 class BorrowingModelTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(email="testuser@example.com", password="password")
-        self.book = Book.objects.create(title="Test Book", author="Test Author", inventory=1, daily_fee=5.0)
+        self.user = User.objects.create_user(
+            email="testuser@example.com", password="password"
+        )
+        self.book = Book.objects.create(
+            title="Test Book", author="Test Author", inventory=1, daily_fee=5.0
+        )
 
     def test_borrowing_with_invalid_dates(self):
         borrow_date = timezone.now().date()
@@ -132,21 +140,27 @@ class BorrowingModelTests(TestCase):
 
 class BorrowingAlreadyBorrowedTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(email="testuser@example.com", password="password")
-        self.book = Book.objects.create(title="Test Book", author="Test Author", inventory=1, daily_fee=5.0)
+        self.user = User.objects.create_user(
+            email="testuser@example.com", password="password"
+        )
+        self.book = Book.objects.create(
+            title="Test Book", author="Test Author", inventory=1, daily_fee=5.0
+        )
 
     def test_borrowing_already_borrowed_book(self):
         Borrowing.objects.create(
             user=self.user,
             book=self.book,
-            expected_return_date=timezone.now().date() + timezone.timedelta(days=7),
+            expected_return_date=timezone.now().date()
+            + timezone.timedelta(days=7),
         )
 
         with self.assertRaises(ValidationError) as context:
             Borrowing.objects.create(
                 user=self.user,
                 book=self.book,
-                expected_return_date=timezone.now().date() + timezone.timedelta(days=7),
+                expected_return_date=timezone.now().date()
+                + timezone.timedelta(days=7),
             )
         self.assertIn(
             "This book is already borrowed.",
@@ -157,18 +171,27 @@ class BorrowingAlreadyBorrowedTests(TestCase):
 class BorrowingFilterTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.admin_user = User.objects.create_superuser(email="admin@example.com", password="password")
-        self.user = User.objects.create_user(email="user@example.com", password="password")
-        self.book = Book.objects.create(title="Test Book", author="Test Author", inventory=1, daily_fee=5.0)
+        self.admin_user = User.objects.create_superuser(
+            email="admin@example.com", password="password"
+        )
+        self.user = User.objects.create_user(
+            email="user@example.com", password="password"
+        )
+        self.book = Book.objects.create(
+            title="Test Book", author="Test Author", inventory=1, daily_fee=5.0
+        )
 
     def test_filter_active_borrowings(self):
         Borrowing.objects.create(
             user=self.user,
             book=self.book,
-            expected_return_date=timezone.now().date() + timezone.timedelta(days=7),
+            expected_return_date=timezone.now().date()
+            + timezone.timedelta(days=7),
         )
         self.client.force_authenticate(user=self.admin_user)
-        response = self.client.get(reverse("borrowing-list"), {"is_active": "true"})
+        response = self.client.get(
+            reverse("borrowing-list"), {"is_active": "true"}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
 
@@ -176,10 +199,13 @@ class BorrowingFilterTests(TestCase):
         Borrowing.objects.create(
             user=self.user,
             book=self.book,
-            expected_return_date=timezone.now().date() + timezone.timedelta(days=7),
+            expected_return_date=timezone.now().date()
+            + timezone.timedelta(days=7),
         )
         self.client.force_authenticate(user=self.admin_user)
-        response = self.client.get(reverse("borrowing-list"), {"user_id": self.user.id})
+        response = self.client.get(
+            reverse("borrowing-list"), {"user_id": self.user.id}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
 
@@ -187,7 +213,8 @@ class BorrowingFilterTests(TestCase):
         Borrowing.objects.create(
             user=self.user,
             book=self.book,
-            expected_return_date=timezone.now().date() + timezone.timedelta(days=7),
+            expected_return_date=timezone.now().date()
+            + timezone.timedelta(days=7),
         )
         self.client.force_authenticate(user=self.user)
         response = self.client.get(reverse("borrowing-list"))

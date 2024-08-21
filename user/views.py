@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema, OpenApiExample
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -23,7 +23,8 @@ class CreateUserView(generics.CreateAPIView):
 
     @extend_schema(
         summary="Create a new user",
-        description="Create a new user account. " "No authentication is required.",
+        description="Create a new user account. "
+        "No authentication is required.",
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
@@ -46,15 +47,16 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
 
     @extend_schema(
         summary="Show information about user",
-        description="Show information about user " "Authentication is required.",
+        description="Show information about user "
+        "Authentication is required.",
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
     @extend_schema(
         summary="Update user information",
-        description="Update the information of the currently"
-        " authenticated user. Requires authentication.",
+        description="Update the information of the currently "
+        "authenticated user. Requires authentication.",
     )
     def put(self, request, *args, **kwargs):
         return super().put(request, *args, **kwargs)

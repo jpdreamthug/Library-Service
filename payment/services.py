@@ -1,6 +1,5 @@
 import stripe
 from django.conf import settings
-from decimal import Decimal
 
 from django.http import HttpRequest
 
