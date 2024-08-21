@@ -70,7 +70,10 @@ class BorrowingViewSet(
                 type=int,
             ),
         ],
-        responses={200: BorrowingListSerializer(many=True), 400: "Bad request"},
+        responses={
+            200: BorrowingListSerializer(many=True),
+            400: "Bad request",
+        },
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -81,9 +84,6 @@ class BorrowingViewSet(
         request=BorrowingCreateSerializer,
         responses={201: BorrowingSerializer, 400: "Bad request"},
     )
-    def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
-
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
@@ -102,7 +102,8 @@ class BorrowingViewSet(
 
     @extend_schema(
         summary="Retrieve a borrowing",
-        description="Retrieve details of a specific " "borrowing record using its ID.",
+        description="Retrieve details of a specific "
+        "borrowing record using its ID.",
         responses={200: BorrowingDetailSerializer, 404: "Not Found"},
     )
     def retrieve(self, request, *args, **kwargs):

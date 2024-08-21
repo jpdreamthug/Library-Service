@@ -47,7 +47,9 @@ def create_stripe_payment_session(
     return payment
 
 
-def create_stripe_fine_session(borrowing: Borrowing, request: HttpRequest) -> Payment:
+def create_stripe_fine_session(
+    borrowing: Borrowing, request: HttpRequest
+) -> Payment:
     success_url = request.build_absolute_uri("/api/payments/success")
     cancel_url = request.build_absolute_uri("/api/payments/cancel")
     fine_amount = borrowing.get_fine_amount()
@@ -59,7 +61,8 @@ def create_stripe_fine_session(borrowing: Borrowing, request: HttpRequest) -> Pa
                 "price_data": {
                     "currency": "usd",
                     "product_data": {
-                        "name": f"Fine for borrowing book - {borrowing.book.title}",
+                        "name": f"Fine for borrowing book - "
+                                f"{borrowing.book.title}",
                     },
                     "unit_amount": fine_amount,
                 },

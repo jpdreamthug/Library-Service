@@ -29,13 +29,17 @@ class PaymentViewSet(
         return queryset
 
     @action(
-        detail=False, methods=["GET"], url_path="success", url_name="payment-success"
+        detail=False,
+        methods=["GET"],
+        url_path="success",
+        url_name="payment-success",
     )
     def success(self, request):
         session_id = request.GET.get("session_id")
         if not session_id:
             return Response(
-                {"error": "Session ID is missing"}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "Session ID is missing"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         session = stripe.checkout.Session.retrieve(session_id)
@@ -43,7 +47,8 @@ class PaymentViewSet(
 
         if not payment:
             return Response(
-                {"error": "Payment not found"}, status=status.HTTP_404_NOT_FOUND
+                {"error": "Payment not found"},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         if session.payment_status == "paid":
@@ -51,13 +56,20 @@ class PaymentViewSet(
             payment.save()
 
             return Response(
-                {"message": "Payment was successful"}, status=status.HTTP_200_OK
+                {"message": "Payment was successful"},
+                status=status.HTTP_200_OK,
             )
         return Response(
-            {"message": "Payment wasn't successful"}, status=status.HTTP_400_BAD_REQUEST
+            {"message": "Payment wasn't successful"},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
-    @action(detail=False, methods=["get"], url_path="cancel", url_name="payment-cancel")
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="cancel",
+        url_name="payment-cancel",
+    )
     def cancel(self, request):
         return Response(
             {"message": "Payment was canceled. You can pay within 24 hours."},

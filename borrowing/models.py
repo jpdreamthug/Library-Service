@@ -13,9 +13,13 @@ class Borrowing(models.Model):
     expected_return_date = models.DateField()
     actual_return_date = models.DateField(null=True, blank=True)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="borrowings"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="borrowings",
     )
-    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="borrowings")
+    book = models.ForeignKey(
+        Book, on_delete=models.CASCADE, related_name="borrowings"
+    )
 
     @property
     def days(self):
@@ -29,7 +33,8 @@ class Borrowing(models.Model):
 
     def get_fine_amount(self) -> int:
         return int(
-            (self.FINE_MULTIPLIER * self.overdue_days * self.book.daily_fee) * 100
+            (self.FINE_MULTIPLIER * self.overdue_days * self.book.daily_fee)
+            * 100
         )
 
     @property
@@ -38,40 +43,34 @@ class Borrowing(models.Model):
             raise ValueError("Book is not returned")
         return self.actual_return_date > self.expected_return_date
 
-    class Meta:
-        constraints = [
-            CheckConstraint(
-                check=Q(expected_return_date__gt=models.F("borrow_date")),
-                name="expected_return_after_borrow",
-            ),
-            CheckConstraint(
-                check=Q(actual_return_date__gte=models.F("borrow_date"))
-                | Q(actual_return_date__isnull=True),
-                name="actual_return_after_borrow_or_null",
-            ),
-        ]
-
     @staticmethod
-    def validate_dates(borrow_date, expected_return_date, actual_return_date, error):
+    def validate_dates(
+        borrow_date, expected_return_date, actual_return_date, error
+    ):
         if not borrow_date:
             raise error({"borrow_date": "Borrow date must be specified."})
 
         if not expected_return_date:
             raise error(
-                {"expected_return_date": "Expected return date must be specified."}
+                {
+                    "expected_return_date":
+                        "Expected return date must be specified."
+                }
             )
 
         if actual_return_date and actual_return_date < borrow_date:
             raise error(
                 {
-                    "actual_return_date": "Actual return date cannot be before borrow date."
+                    "actual_return_date":
+                        "Actual return date cannot be before borrow date."
                 }
             )
 
         if borrow_date > expected_return_date:
             raise error(
                 {
-                    "expected_return_date": "Expected return date must be after borrow date."
+                    "expected_return_date":
+                        "Expected return date must be after borrow date."
                 }
             )
 

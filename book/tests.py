@@ -7,16 +7,15 @@ from book.models import Book
 
 User = get_user_model()
 
+
 class BookServiceTests(APITestCase):
 
     def setUp(self):
         self.user = User.objects.create_user(
-            email="testuser@example.com",
-            password="password"
+            email="testuser@example.com", password="password"
         )
         self.admin_user = User.objects.create_superuser(
-            email="adminuser@example.com",
-            password="adminpassword"
+            email="adminuser@example.com", password="adminpassword"
         )
         self.client.force_authenticate(user=self.admin_user)
         self.book = Book.objects.create(
@@ -24,10 +23,12 @@ class BookServiceTests(APITestCase):
             author="Original Author",
             cover="HARD",
             inventory=10,
-            daily_fee=1.99
+            daily_fee=1.99,
         )
         self.book_list_url = reverse("book:book-list")
-        self.book_detail_url = lambda pk: reverse("book:book-detail", kwargs={"pk": pk})
+        self.book_detail_url = lambda pk: reverse(
+            "book:book-detail", kwargs={"pk": pk}
+        )
 
     def test_list_books(self):
         response = self.client.get(self.book_list_url)
@@ -47,7 +48,9 @@ class BookServiceTests(APITestCase):
 
     def test_create_book_as_non_admin(self):
         self.client.force_authenticate(user=self.user)
-        response = self.client.post(self.book_list_url, {"title": "New Book", "inventory": 10})
+        response = self.client.post(
+            self.book_list_url, {"title": "New Book", "inventory": 10}
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_update_book_as_admin(self):
@@ -64,7 +67,10 @@ class BookServiceTests(APITestCase):
     def test_update_book_as_non_admin(self):
         book = Book.objects.create(title="Existing Book", inventory=5)
         self.client.force_authenticate(user=self.user)
-        response = self.client.put(self.book_detail_url(book.id), {"title": "Updated Book", "inventory": 8})
+        response = self.client.put(
+            self.book_detail_url(book.id),
+            {"title": "Updated Book", "inventory": 8},
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_book_as_admin(self):

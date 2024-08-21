@@ -4,12 +4,20 @@ from rest_framework import serializers
 
 class UserSerializer(serializers.ModelSerializer):
     """
-    Serializer for the User model. Includes methods for creating and updating users.
+    Serializer for the User model. Includes methods for
+    creating and updating users.
     """
 
     class Meta:
         model = get_user_model()
-        fields = ("id", "email", "password", "first_name", "last_name", "is_staff")
+        fields = (
+            "id",
+            "email",
+            "password",
+            "first_name",
+            "last_name",
+            "is_staff",
+        )
         read_only_fields = ("is_staff",)
         extra_kwargs = {"password": {"write_only": True, "min_length": 5}}
 

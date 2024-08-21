@@ -62,7 +62,9 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
         if Borrowing.objects.filter(
             user=user, book=book, actual_return_date__isnull=True
         ).exists():
-            raise serializers.ValidationError("You have already borrowed this book.")
+            raise serializers.ValidationError(
+                "You have already borrowed this book."
+            )
 
         if book.inventory <= 0:
             raise serializers.ValidationError("The book is out of stock")

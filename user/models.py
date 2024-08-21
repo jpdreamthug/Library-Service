@@ -7,6 +7,7 @@ class UserManager(BaseUserManager):
     """
     Custom manager for the User model that handles user creation.
     """
+
     use_in_migrations = True
 
     def _create_user(self, email, password, **extra_fields):
@@ -50,6 +51,7 @@ class User(AbstractUser):
     """
     Custom user model that uses email instead of username for authentication.
     """
+
     username = None
     email = models.EmailField("email address", unique=True)
 

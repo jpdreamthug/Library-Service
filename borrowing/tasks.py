@@ -25,7 +25,9 @@ def send_notification_overdue_tasks():
         )
     for borrowing in queryset:
         message = ""
-        if borrowing.expected_return_date == timezone.now().date() + timedelta(days=1):
+        if borrowing.expected_return_date == timezone.now().date() + timedelta(
+            days=1
+        ):
             message = (
                 f"Tomorrow borrowing book will be overdue\n"
                 f"Book: {borrowing.book}\n"
