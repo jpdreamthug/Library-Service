@@ -191,13 +191,18 @@ CELERY_BEAT_SCHEDULE = {
         "task": "borrowing.tasks.send_notification_overdue_tasks",
         "schedule": timedelta(days=1),
     },
+    "check_payment_expiration": {
+        "task": "payment.tasks.check_payment_expiration",
+        "schedule": timedelta(seconds=20),
+    },
 }
 
 STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
-STRIPE_SUCCESS_URL = "http://localhost:8000/success/"
-STRIPE_CANCEL_URL = "http://localhost:8000/cancel/"
+PAYMENT_SUCCESS_URL = "/api/payments/success"
+PAYMENT_CANCEL_URL = "/api/payments/cancel"
+
 
 if not os.getenv("DOCKER", False):
     DATABASES["default"]["HOST"] = "127.0.0.1"

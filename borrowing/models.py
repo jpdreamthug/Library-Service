@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.db import models
 from django.db.models import CheckConstraint, Q
@@ -9,7 +11,7 @@ from book.models import Book
 
 class Borrowing(models.Model):
     FINE_MULTIPLIER = 2
-    borrow_date = models.DateField(default=timezone.now().date())
+    borrow_date = models.DateField(auto_now_add=True)
     expected_return_date = models.DateField()
     actual_return_date = models.DateField(null=True, blank=True)
     user = models.ForeignKey(
@@ -18,7 +20,9 @@ class Borrowing(models.Model):
         related_name="borrowings",
     )
     book = models.ForeignKey(
-        Book, on_delete=models.CASCADE, related_name="borrowings"
+        Book,
+        on_delete=models.CASCADE,
+        related_name="borrowings"
     )
 
     @property
@@ -33,9 +37,13 @@ class Borrowing(models.Model):
 
     def get_fine_amount(self) -> int:
         return int(
-            (self.FINE_MULTIPLIER * self.overdue_days * self.book.daily_fee)
-            * 100
+            self.FINE_MULTIPLIER
+            * self.overdue_days
+            * self.book.daily_fee * 100
         )
+
+    def get_payment_amount(self) -> int:
+        return int(self.book.daily_fee * Decimal(self.days) * 100)
 
     @property
     def is_overdue(self):

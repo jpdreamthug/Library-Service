@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from book.serializers import BookSerializer
 from borrowing.models import Borrowing
+from payment.models import Payment
 from payment.serializers import PaymentSerializer
 
 
@@ -25,7 +26,14 @@ class BorrowingListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Borrowing
-        fields = ("id", "borrow_date", "expected_return_date", "book", "user")
+        fields = (
+            "id",
+            "borrow_date",
+            "actual_return_date",
+            "expected_return_date",
+            "book",
+            "user",
+        )
 
 
 class BorrowingDetailSerializer(serializers.ModelSerializer):
@@ -59,6 +67,14 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         book = attrs.get("book")
 
+        if Payment.objects.filter(
+            borrowing__user=user, status=Payment.Status.PENDING
+        ).exists():
+            raise serializers.ValidationError(
+                "You have pending payments. "
+                "Please complete them before borrowing a new book."
+            )
+
         if Borrowing.objects.filter(
             user=user, book=book, actual_return_date__isnull=True
         ).exists():
@@ -70,17 +86,14 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("The book is out of stock")
 
         borrow_date = timezone.now().date()
-
-        expected_return_date = attrs.get("expected_return_date")
-        actual_return_date = None
+        attrs["borrow_date"] = borrow_date
 
         Borrowing.validate_dates(
             borrow_date,
-            expected_return_date,
-            actual_return_date,
-            serializers.ValidationError,
+            attrs.get("expected_return_date"),
+            actual_return_date=None,
+            error=serializers.ValidationError,
         )
-        attrs["borrow_date"] = borrow_date
 
         return attrs
 
@@ -88,7 +101,7 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             book = validated_data.get("book")
             book.inventory -= 1
-            book.save()
+            book.save(update_fields=["inventory"])
 
             return super().create(validated_data)
 

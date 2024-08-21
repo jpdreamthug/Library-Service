@@ -9,6 +9,11 @@ from book.permissions import IsAdminOrReadOnly
 from book.serializers import BookSerializer
 
 
+@extend_schema(
+    tags=["Books"],
+    summary="Books API",
+    description="Endpoints related to managing books within the library system.",
+)
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
@@ -27,8 +32,6 @@ class BookViewSet(viewsets.ModelViewSet):
     @extend_schema(
         summary="Create a new book",
         description="Create a new book entry. Requires admin privileges.",
-        request=BookSerializer,
-        responses={201: BookSerializer, 400: "Bad request"},
     )
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
@@ -36,7 +39,6 @@ class BookViewSet(viewsets.ModelViewSet):
     @extend_schema(
         summary="Retrieve a book",
         description="Retrieve the details of a specific book using its ID.",
-        responses={200: BookSerializer, 404: "Not Found"},
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
@@ -44,9 +46,7 @@ class BookViewSet(viewsets.ModelViewSet):
     @extend_schema(
         summary="Update a book",
         description="Update the details of a specific book "
-        "using its ID. Requires admin privileges.",
-        request=BookSerializer,
-        responses={200: BookSerializer, 400: "Bad request", 404: "Not Found"},
+                    "using its ID. Requires admin privileges.",
     )
     def update(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
@@ -54,8 +54,7 @@ class BookViewSet(viewsets.ModelViewSet):
     @extend_schema(
         summary="Delete a book",
         description="Delete a specific book using its ID. "
-        "Requires admin privileges.",
-        responses={204: "No Content", 404: "Not Found"},
+                    "Requires admin privileges.",
     )
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
@@ -63,9 +62,7 @@ class BookViewSet(viewsets.ModelViewSet):
     @extend_schema(
         summary="Partially update a book",
         description="Partially update the details of a specific "
-        "book using its ID. Requires admin privileges.",
-        request=BookSerializer,
-        responses={200: BookSerializer, 400: "Bad request", 404: "Not Found"},
+                    "book using its ID. Requires admin privileges.",
     )
     def partial_update(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
