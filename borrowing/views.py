@@ -93,7 +93,7 @@ class BorrowingViewSet(
                 request,
                 Payment.Type.PAYMENT
             )
-        except StripeError as e:
+        except StripeError:
             borrowing.delete()
             return Response(
                 {"detail": "Error while creating payment session"},
@@ -144,11 +144,16 @@ class BorrowingViewSet(
         borrowing.book.save()
 
         if borrowing.is_overdue:
-            payment = create_payment_session(
-                borrowing,
-                request,
-                Payment.Type.FINE
-            )
+            try:
+                payment = create_payment_session(
+                    borrowing,
+                    request,
+                    Payment.Type.FINE
+                )
+            except StripeError:
+                return Response({
+                    "detail": "Error while creating payment session"
+                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
             return Response(
                 {
                     "session_url": payment.session_url,
