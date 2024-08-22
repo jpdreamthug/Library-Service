@@ -61,7 +61,10 @@ class PublicUserApiTests(TestCase):
         )
         self.assertFalse(user_exists)
         self.assertIn("password", res.data)
-        self.assertIn("Ensure this field has at least 5 characters.", res.data["password"])
+        self.assertIn(
+            "Ensure this field has at least 5 characters.",
+            res.data["password"]
+        )
 
     def test_retrieve_user_unauthorized(self):
         """Test that authentication is required for users"""
