@@ -19,7 +19,22 @@ class UserSerializer(serializers.ModelSerializer):
             "is_staff",
         )
         read_only_fields = ("is_staff",)
-        extra_kwargs = {"password": {"write_only": True, "min_length": 5}}
+        extra_kwargs = {
+            "password": {
+                "write_only": True,
+                "min_length": 5,
+                "error_messages": {
+                    "min_length": "Ensure this field has at least 5 characters."
+                }
+            },
+            "email": {
+                "error_messages": {
+                    "required": "Email address is required.",
+                    "blank": "Email address cannot be blank.",
+                    "invalid": "Enter a valid email address."
+                }
+            }
+        }
 
     def create(self, validated_data):
         """Create a new user with encrypted password and return it"""
