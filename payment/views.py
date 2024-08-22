@@ -103,5 +103,5 @@ class PaymentViewSet(
         payment.save()
 
         return Response(
-            {"detail": "not implemented"}, status=status.HTTP_200_OK
+            {"detail": "renew was successful"}, status=status.HTTP_200_OK
         )
