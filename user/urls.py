@@ -11,8 +11,8 @@ from user.views import (
 app_name = "users"
 
 urlpatterns = [
-    path("register/", CreateUserView.as_view(), name="create"),
-    path("me/", ManageUserView.as_view(), name="manage"),
+    path("register/", CreateUserView.as_view(), name="user_create"),
+    path("me/", ManageUserView.as_view(), name="user_manage"),
     path(
         "token/",
         CustomTokenObtainPairView.as_view(),
