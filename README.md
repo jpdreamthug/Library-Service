@@ -9,9 +9,7 @@ payment processing and Telegram for notifications.
 
 ## Participants:
 - Yaroslav Kondrattsev
-- Dmytro Sokolovskyi
 - Ivan Vahanov
-- Danylo Roh
 - Andrii Fedorov
 - Serhii Musiienko
 
