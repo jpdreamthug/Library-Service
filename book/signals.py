@@ -11,4 +11,4 @@ def cache_invalidate_by_prefix(prefix: str) -> int:
 
 @receiver(post_save, sender=Book)
 def book_save_invalidate_cache(sender, **kwargs):
-    cache_invalidate_by_prefix("books")
+    cache_invalidate_by_prefix("books_list")
