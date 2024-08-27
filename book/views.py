@@ -1,7 +1,7 @@
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-from drf_spectacular.utils import extend_schema
 from django.views.decorators.vary import vary_on_headers
+from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 
 from book.models import Book

@@ -2,11 +2,10 @@ from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver, Signal
 
-from borrowing.models import Borrowing
 from book.signals import cache_invalidate_by_prefix
+from borrowing.models import Borrowing
 from notification.telegram_bot import TelegramBot
 from payment.models import Payment
-
 
 payment_successful = Signal()
 

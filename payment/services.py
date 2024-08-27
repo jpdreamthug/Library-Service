@@ -1,9 +1,11 @@
+import re
+
 import stripe
 from django.conf import settings
 from django.http import HttpRequest
+
 from borrowing.models import Borrowing
 from payment.models import Payment
-import re
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 

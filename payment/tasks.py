@@ -1,6 +1,5 @@
 import stripe
 from celery import shared_task
-from django.conf import settings
 
 from payment.models import Payment
 
