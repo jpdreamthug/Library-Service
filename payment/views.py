@@ -1,4 +1,5 @@
 import stripe
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
@@ -47,12 +48,12 @@ class PaymentViewSet(
             )
 
         session = stripe.checkout.Session.retrieve(session_id)
-        payment = Payment.objects.filter(session_id=session_id).first()
+        payment = get_object_or_404(Payment, session_id=session_id)
 
-        if not payment:
+        if payment.status == "Paid":
             return Response(
-                {"error": "Payment not found"},
-                status=status.HTTP_404_NOT_FOUND,
+                {"message": "Payment is already paid"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if session.payment_status == "paid":
@@ -103,5 +104,5 @@ class PaymentViewSet(
         payment.save()
 
         return Response(
-            {"detail": "not implemented"}, status=status.HTTP_200_OK
+            {"detail": "renew was successful"}, status=status.HTTP_200_OK
         )

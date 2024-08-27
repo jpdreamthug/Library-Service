@@ -7,7 +7,7 @@ from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
+from stripe import StripeError
 
 from borrowing.filters import BorrowingFilterBackend
 from borrowing.mixins import GenericMethodsMixin
@@ -87,11 +87,18 @@ class BorrowingViewSet(
         borrowing_id = response.data.get("id")
         borrowing = Borrowing.objects.get(id=borrowing_id)
 
-        payment = create_payment_session(
-            borrowing,
-            request,
-            Payment.Type.PAYMENT
-        )
+        try:
+            payment = create_payment_session(
+                borrowing,
+                request,
+                Payment.Type.PAYMENT
+            )
+        except StripeError:
+            borrowing.delete()
+            return Response(
+                {"detail": "Error while creating payment session"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
 
         return Response(
             {"payment_url": payment.session_url},
@@ -137,11 +144,16 @@ class BorrowingViewSet(
         borrowing.book.save()
 
         if borrowing.is_overdue:
-            payment = create_payment_session(
-                borrowing,
-                request,
-                Payment.Type.FINE
-            )
+            try:
+                payment = create_payment_session(
+                    borrowing,
+                    request,
+                    Payment.Type.FINE
+                )
+            except StripeError:
+                return Response({
+                    "detail": "Error while creating payment session"
+                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
             return Response(
                 {
                     "session_url": payment.session_url,
