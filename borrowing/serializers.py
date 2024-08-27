@@ -103,12 +103,11 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        with transaction.atomic():
-            book = validated_data.get("book")
-            book.inventory -= 1
-            book.save(update_fields=["inventory"])
+        book = validated_data.get("book")
+        book.inventory -= 1
+        book.save(update_fields=["inventory"])
 
-            return super().create(validated_data)
+        return super().create(validated_data)
 
 
 class BorrowingReturnSerializer(serializers.ModelSerializer):
