@@ -47,7 +47,7 @@ class BorrowingViewSet(
         "create_payment": BorrowingReturnSerializer,
     }
 
-    @method_decorator(cache_page(60 * 15), name="borrowings-list")
+    @method_decorator(cache_page(60 * 15), name="borrowings")
     @extend_schema(
         summary="List all borrowings",
         description="Retrieve a list of all borrowings with details"
@@ -126,7 +126,6 @@ class BorrowingViewSet(
         permission_classes=[IsAuthenticated],
         url_path="return",
     )
-    @transaction.atomic
     def return_borrowing_book(self, request, pk=None):
         borrowing = self.get_object()
         if borrowing.actual_return_date:
@@ -135,33 +134,38 @@ class BorrowingViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        borrowing.book.inventory += 1
-        time_now = timezone.now().date()
-        borrowing.actual_return_date = time_now
-        borrowing.save()
-        borrowing.book.save()
+        self._return_book(borrowing)
 
         if borrowing.is_overdue:
-            try:
-                payment = create_payment_session(
-                    borrowing, request, Payment.Type.FINE
-                )
-            except StripeError:
-                return Response(
-                    {"detail": "Error while creating payment session"},
-                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
-                )
-            return Response(
-                {
-                    "session_url": payment.session_url,
-                },
-                status=status.HTTP_200_OK,
-            )
+            return self._handle_overdue_payment(borrowing, request)
 
         return Response(
             {
                 "message": "Book returned successfully",
-                "actual_return_date": time_now,
+                "actual_return_date": borrowing.actual_return_date,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def _return_book(self, borrowing):
+        borrowing.book.inventory += 1
+        borrowing.actual_return_date = timezone.now().date()
+        borrowing.save()
+        borrowing.book.save()
+
+    def _handle_overdue_payment(self, borrowing, request):
+        try:
+            payment = create_payment_session(
+                borrowing, request, Payment.Type.FINE
+            )
+        except StripeError:
+            return Response(
+                {"detail": "Error while creating payment session"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        return Response(
+            {
+                "session_url": payment.session_url,
             },
             status=status.HTTP_200_OK,
         )
