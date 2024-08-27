@@ -2,6 +2,8 @@ import stripe
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
@@ -22,13 +24,10 @@ from borrowing.serializers import (
 from payment.models import Payment
 from payment.services import create_payment_session
 
-
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
-@extend_schema(
-    tags=["Borrowings"]
-)
+@extend_schema(tags=["Borrowings"])
 class BorrowingViewSet(
     GenericMethodsMixin,
     mixins.CreateModelMixin,
@@ -48,6 +47,7 @@ class BorrowingViewSet(
         "create_payment": BorrowingReturnSerializer,
     }
 
+    @method_decorator(cache_page(60 * 15), name="borrowings-list")
     @extend_schema(
         summary="List all borrowings",
         description="Retrieve a list of all borrowings with details"
@@ -79,7 +79,7 @@ class BorrowingViewSet(
     @extend_schema(
         summary="Create a new borrowing",
         description="Create a new borrowing record."
-                    "Requires authentication.",
+        "Requires authentication.",
     )
     @transaction.atomic
     def create(self, request, *args, **kwargs):
@@ -89,15 +89,13 @@ class BorrowingViewSet(
 
         try:
             payment = create_payment_session(
-                borrowing,
-                request,
-                Payment.Type.PAYMENT
+                borrowing, request, Payment.Type.PAYMENT
             )
         except StripeError:
             borrowing.delete()
             return Response(
                 {"detail": "Error while creating payment session"},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
         return Response(
@@ -111,7 +109,7 @@ class BorrowingViewSet(
     @extend_schema(
         summary="Retrieve a borrowing",
         description="Retrieve details of a specific "
-                    "borrowing record using its ID.",
+        "borrowing record using its ID.",
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
@@ -146,14 +144,13 @@ class BorrowingViewSet(
         if borrowing.is_overdue:
             try:
                 payment = create_payment_session(
-                    borrowing,
-                    request,
-                    Payment.Type.FINE
+                    borrowing, request, Payment.Type.FINE
                 )
             except StripeError:
-                return Response({
-                    "detail": "Error while creating payment session"
-                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                return Response(
+                    {"detail": "Error while creating payment session"},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
             return Response(
                 {
                     "session_url": payment.session_url,
