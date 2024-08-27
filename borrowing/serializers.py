@@ -35,6 +35,11 @@ class BorrowingListSerializer(serializers.ModelSerializer):
             "user",
         )
 
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep["book"] = str(instance.book)
+        return rep
+
 
 class BorrowingDetailSerializer(serializers.ModelSerializer):
     book = BookSerializer()
