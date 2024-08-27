@@ -1,19 +1,23 @@
 import stripe
 from django.conf import settings
-
 from django.http import HttpRequest
-
 from borrowing.models import Borrowing
 from payment.models import Payment
+import re
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
+def sanitize_product_name(name: str) -> str:
+    sanitized_name = re.sub(r"[^a-zA-Z0-9\s]", "", name)
+    return sanitized_name[:127]
+
+
 def create_payment_session(
-        borrowing: Borrowing,
-        request: HttpRequest,
-        payment_type: Payment.Type,
-        save=True
+    borrowing: Borrowing,
+    request: HttpRequest,
+    payment_type: Payment.Type,
+    save=True,
 ) -> Payment:
 
     if payment_type == Payment.Type.PAYMENT:
@@ -22,6 +26,8 @@ def create_payment_session(
     else:
         total_price = borrowing.get_fine_amount()
         product_name = f"Fine for {borrowing.book.title}"
+
+    product_name = sanitize_product_name(product_name)
 
     success_url = request.build_absolute_uri(settings.PAYMENT_SUCCESS_URL)
     cancel_url = request.build_absolute_uri(settings.PAYMENT_CANCEL_URL)
@@ -50,7 +56,7 @@ def create_payment_session(
         session_url=session.url,
         session_id=session.id,
         money_to_pay=total_price,
-        type=payment_type
+        type=payment_type,
     )
     if save:
         payment.save()
