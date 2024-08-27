@@ -1,11 +1,13 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+
 from rest_framework import status
 from rest_framework.test import APIClient
 
-CREATE_USER_URL = reverse("user:create")
-ME_URL = reverse("user:manage")
+
+CREATE_USER_URL = reverse("users:user_create")
+ME_URL = reverse("users:user_manage")
 
 
 def create_user(**params):
@@ -29,6 +31,7 @@ class PublicUserApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         user = get_user_model().objects.get(**res.data)
+        self.assertEqual(user.email, payload["email"])
         self.assertTrue(user.check_password(payload["password"]))
         self.assertNotIn("password", res.data)
 
@@ -57,6 +60,11 @@ class PublicUserApiTests(TestCase):
             get_user_model().objects.filter(email=payload["email"]).exists()
         )
         self.assertFalse(user_exists)
+        self.assertIn("password", res.data)
+        self.assertIn(
+            "Ensure this field has at least 5 characters.",
+            res.data["password"]
+        )
 
     def test_retrieve_user_unauthorized(self):
         """Test that authentication is required for users"""
